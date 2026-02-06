@@ -112,7 +112,7 @@ pub use tzdb_data::{TZ_NAMES, VERSION, VERSION_HASH, time_zone};
 /// ```
 #[inline]
 pub fn tz_by_name<S: AsRef<[u8]>>(s: S) -> Option<tz::TimeZoneRef<'static>> {
-    Some(*tzdb_data::find_tz(s.as_ref())?)
+    Some(tzdb_data::find_tz(s.as_ref())?.tz)
 }
 
 /// Find the raw, unparsed time zone data by name, e.g. `"Europe/Berlin"` (case-insensitive)

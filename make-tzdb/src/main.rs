@@ -19,7 +19,7 @@ mod parse;
 use std::cmp::Ordering;
 use std::env::{args, var_os};
 use std::fmt::Write as _;
-use std::fs::{create_dir_all, read, read_to_string, OpenOptions};
+use std::fs::{OpenOptions, create_dir_all, read, read_to_string};
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
 
@@ -135,7 +135,10 @@ pub fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn gen_mod(args: &mut impl Iterator<Item = String>, target_dir: &Path) -> Result<(), anyhow::Error> {
+fn gen_mod(
+    args: &mut impl Iterator<Item = String>,
+    target_dir: &Path,
+) -> Result<(), anyhow::Error> {
     let hash_file = args.next().unwrap_or_else(|| "tzdb.tar.lz.sha".to_owned());
     let hash_file = read_to_string(&hash_file)?;
     let (hash, version) = hash_file
@@ -192,7 +195,9 @@ pub use self::tz_names::TZ_NAMES;
     Ok(())
 }
 
-fn collect_entries_by_major(entries_by_bytes: &IndexMap<Vec<u8>, Vec<TzName>>) -> anyhow::Result<Vec<(Option<String>, Vec<&TzName>)>> {
+fn collect_entries_by_major(
+    entries_by_bytes: &IndexMap<Vec<u8>, Vec<TzName>>,
+) -> anyhow::Result<Vec<(Option<String>, Vec<&TzName>)>> {
     let entries_by_major = entries_by_bytes
         .values()
         .flat_map(|entries| entries.iter())
@@ -223,7 +228,9 @@ fn collect_entries_by_major(entries_by_bytes: &IndexMap<Vec<u8>, Vec<TzName>>) -
     Ok(entries_by_major)
 }
 
-fn collect_entries_by_bytes(args: &mut impl Iterator<Item = String>) -> anyhow::Result<IndexMap<Vec<u8>, Vec<TzName>>> {
+fn collect_entries_by_bytes(
+    args: &mut impl Iterator<Item = String>,
+) -> anyhow::Result<IndexMap<Vec<u8>, Vec<TzName>>> {
     let mut base_path = args
         .next()
         .unwrap_or_else(|| "/usr/share/zoneinfo/posix/".to_owned());
@@ -275,7 +282,10 @@ fn collect_entries_by_bytes(args: &mut impl Iterator<Item = String>) -> anyhow::
     Ok(entries_by_bytes)
 }
 
-fn gen_raw_tzdata(entries_by_bytes: IndexMap<Vec<u8>, Vec<TzName>>, target_dir: &Path) -> anyhow::Result<()> {
+fn gen_raw_tzdata(
+    entries_by_bytes: IndexMap<Vec<u8>, Vec<TzName>>,
+    target_dir: &Path,
+) -> anyhow::Result<()> {
     let mut r = GENERATED_FILE.to_owned();
     writeln!(r, "#![allow(unknown_lints)]")?;
     writeln!(r, "#![allow(clippy::octal_escapes)]")?;
@@ -292,15 +302,12 @@ fn gen_raw_tzdata(entries_by_bytes: IndexMap<Vec<u8>, Vec<TzName>>, target_dir: 
     Ok(())
 }
 
-fn gen_tzdata(entries_by_bytes: &IndexMap<Vec<u8>, Vec<TzName>>, target_dir: &Path) -> anyhow::Result<()> {
+fn gen_tzdata(
+    entries_by_bytes: &IndexMap<Vec<u8>, Vec<TzName>>,
+    target_dir: &Path,
+) -> anyhow::Result<()> {
     let mut r = GENERATED_FILE.to_owned();
-    writeln!(r, "use tz::timezone::RuleDay;")?;
-    writeln!(r, "use tz::timezone::TransitionRule;")?;
-    writeln!(r, "use tz::TimeZoneRef;")?;
-    writeln!(r)?;
-    writeln!(r, "use crate::new_alternate_time;")?;
     writeln!(r, "use crate::new_local_time_type;")?;
-    writeln!(r, "use crate::new_month_week_day;")?;
     writeln!(r, "use crate::new_time_zone_ref;")?;
     writeln!(r, "use crate::new_transition;")?;
     writeln!(r)?;
@@ -308,7 +315,7 @@ fn gen_tzdata(entries_by_bytes: &IndexMap<Vec<u8>, Vec<TzName>>, target_dir: &Pa
         writeln!(r)?;
         writeln!(
             r,
-            "pub(crate) const {}: TimeZoneRef<'static> = {};",
+            "pub(crate) const {}: crate::WrappedTz = {};",
             &entries[0].canon,
             tz_convert(bytes),
         )?;
@@ -317,7 +324,10 @@ fn gen_tzdata(entries_by_bytes: &IndexMap<Vec<u8>, Vec<TzName>>, target_dir: &Pa
     Ok(())
 }
 
-fn gen_tz_names(entries_by_major: Vec<(Option<String>, Vec<&TzName>)>, target_dir: &Path) -> anyhow::Result<()> {
+fn gen_tz_names(
+    entries_by_major: Vec<(Option<String>, Vec<&TzName>)>,
+    target_dir: &Path,
+) -> anyhow::Result<()> {
     let mut time_zones_list = entries_by_major
         .iter()
         .flat_map(|(_, entries)| entries.iter())
@@ -336,7 +346,10 @@ fn gen_tz_names(entries_by_major: Vec<(Option<String>, Vec<&TzName>)>, target_di
     Ok(())
 }
 
-fn gen_time_zones(entries_by_major: &Vec<(Option<String>, Vec<&TzName>)>, target_dir: &Path) -> anyhow::Result<()> {
+fn gen_time_zones(
+    entries_by_major: &Vec<(Option<String>, Vec<&TzName>)>,
+    target_dir: &Path,
+) -> anyhow::Result<()> {
     let mut r = GENERATED_FILE.to_owned();
     for (folder, entries) in entries_by_major {
         if let Some(folder) = folder {
@@ -352,7 +365,7 @@ fn gen_time_zones(entries_by_major: &Vec<(Option<String>, Vec<&TzName>)>, target
             writeln!(r, "    /// Time zone data for `{:?}`", entry.full)?;
             writeln!(
                 r,
-                "pub const {}: tz::TimeZoneRef<'static> = crate::generated::tzdata::{};",
+                "pub const {}: crate::WrappedTz = crate::generated::tzdata::{};",
                 entry.minor, entry.canon,
             )?;
         }
@@ -378,7 +391,10 @@ fn gen_time_zones(entries_by_major: &Vec<(Option<String>, Vec<&TzName>)>, target
     Ok(())
 }
 
-fn gen_test_all_names(entries_by_bytes: &IndexMap<Vec<u8>, Vec<TzName>>, target_dir: &Path) -> anyhow::Result<()> {
+fn gen_test_all_names(
+    entries_by_bytes: &IndexMap<Vec<u8>, Vec<TzName>>,
+    target_dir: &Path,
+) -> anyhow::Result<()> {
     let mut r = GENERATED_FILE.to_owned();
     writeln!(r, "#[test]")?;
     writeln!(r, "fn test() {{")?;
@@ -386,7 +402,7 @@ fn gen_test_all_names(entries_by_bytes: &IndexMap<Vec<u8>, Vec<TzName>>, target_
     writeln!(r)?;
     writeln!(
         r,
-        "    const TIME_ZONES: &[(&tz::TimeZoneRef<'static>, &[u8], &[&[u8]])] = &["
+        "    const TIME_ZONES: &[(&crate::WrappedTz, &[u8], &[&[u8]])] = &["
     )?;
     for entries in entries_by_bytes.values() {
         for entry in entries {
@@ -467,7 +483,10 @@ fn gen_test_all_names(entries_by_bytes: &IndexMap<Vec<u8>, Vec<TzName>>, target_
     Ok(())
 }
 
-fn gen_lookup_table(entries_by_bytes: &IndexMap<Vec<u8>, Vec<TzName>>, target_dir: &Path) -> anyhow::Result<()> {
+fn gen_lookup_table(
+    entries_by_bytes: &IndexMap<Vec<u8>, Vec<TzName>>,
+    target_dir: &Path,
+) -> anyhow::Result<()> {
     let mut keywords = String::new();
     writeln!(
         keywords,

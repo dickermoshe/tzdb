@@ -14,7 +14,7 @@ tzdb_data/src/generated/mod.rs: tmp/${TZDB_VERSION}/usr/share/zoneinfo/ tzdb.tar
 	    $(@D)/tz_names.rs
 
 tmp/${TZDB_VERSION}/usr/share/zoneinfo/: tmp/${TZDB_VERSION}/
-	cd tmp/${TZDB_VERSION}/ && make PACKRATDATA=backzone PACKRATLIST=zone.tab TOPDIR="." install
+	cd tmp/${TZDB_VERSION}/ && make PACKRATDATA=backzone PACKRATLIST=zone.tab ZFLAGS="-r @1767225600/@2398377600" TOPDIR="." install
 
 tmp/${TZDB_VERSION}/: tmp/${TZDB_VERSION}.tar.lz
 	cd tmp/ && tar xf $(<F)

@@ -42,7 +42,7 @@ pub fn main() -> Result<(), now::NowError> {
         eprintln!("No time zone selected, defaulting to the system time zone.");
         eprintln!("To see a list of all known time zones run: {exe} --list");
         eprintln!();
-        local_tz().unwrap_or(time_zone::UTC)
+        local_tz().unwrap_or(time_zone::UTC.tz)
     };
 
     let dt = now::in_tz(timezone)?;

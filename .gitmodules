@@ -1,4 +1,0 @@
-[submodule "src/generated"]
-	path = tzdb_data/src/generated
-	url = ./
-	branch = generated

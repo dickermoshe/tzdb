@@ -1,7 +1,3 @@
 [workspace]
-members = [
-    "examples/current-time",
-    "tzdb",
-    "tzdb_data",
-]
+members = ["examples/current-time", "tzdb", "tzdb_data", "make-tzdb"]
 resolver = "2"

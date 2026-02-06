@@ -1,3 +1,8 @@
+# Used as part of the Embedded Zmanim project
+
+- Limit timezone information from 2026-2046
+- tzdb-data now implements the TimeZone trait from chrono
+
 # tzdb — Time Zone Database
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Kijewski/tzdb/ci.yml?branch=v0.7.x&style=flat-square&logo=github&logoColor=white "GitHub Workflow Status")](https://github.com/Kijewski/tzdb/actions/workflows/ci.yml)

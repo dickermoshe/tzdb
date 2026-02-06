@@ -12,7 +12,9 @@ readme = "README.md"
 rust-version = "1.81.0"
 
 [dependencies]
-tz-rs = { version = "0.7.0", default-features = false }
+chrono = { version = "0.4.43", default-features = false }
+defmt = "1.0.1"
+tz-rs = { version = "0.7.3", default-features = false }
 
 [package.metadata.docs.rs]
 all-features = true

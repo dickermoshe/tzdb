@@ -138,8 +138,6 @@ def convert(stdin, stdout):
     print('// GENERATED FILE', file=stdout)
     print('// ALL CHANGES MADE IN THIS FOLDER WILL BE LOST!', file=stdout)
     print(file=stdout)
-    print('use tz::TimeZoneRef;', file=stdout)
-    print(file=stdout)
     print('use crate::eq_ignore_ascii_case;', file=stdout)
     print('use super::raw_tzdata;', file=stdout)
     print('use super::tzdata;', file=stdout)
@@ -179,7 +177,7 @@ def convert(stdin, stdout):
     print('];', file=stdout)
     print(file=stdout)
 
-    print(f'pub(crate) const TIME_ZONES: [&TimeZoneRef<\'static>; {entry_count + 1}] = [', file=stdout)
+    print(f'pub(crate) const TIME_ZONES: [&crate::WrappedTz; {entry_count + 1}] = [', file=stdout)
     for entry in table:
         match entry:
             case (name, canon):

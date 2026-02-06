@@ -48,7 +48,10 @@
 //! ```
 //!
 
+// mod chrono;
 mod generated;
+mod wrapped_tz;
+pub use wrapped_tz::WrappedTz;
 
 #[doc(inline)]
 pub use crate::generated::{TZ_NAMES, VERSION, VERSION_HASH, time_zone};
@@ -65,7 +68,7 @@ pub use crate::generated::{TZ_NAMES, VERSION, VERSION_HASH, time_zone};
 /// ```
 #[inline]
 #[must_use]
-pub const fn find_tz(s: &[u8]) -> Option<&'static tz::TimeZoneRef<'static>> {
+pub const fn find_tz(s: &[u8]) -> Option<&WrappedTz> {
     match generated::by_name::find_key(s) {
         Some(key) => Some(generated::by_name::TIME_ZONES[key as u16 as usize]),
         None => None,
@@ -98,9 +101,9 @@ const fn new_time_zone_ref(
     local_time_types: &'static [tz::LocalTimeType],
     leap_seconds: &'static [tz::timezone::LeapSecond],
     extra_rule: &'static Option<tz::timezone::TransitionRule>,
-) -> tz::timezone::TimeZoneRef<'static> {
+) -> WrappedTz {
     match tz::timezone::TimeZoneRef::new(transitions, local_time_types, leap_seconds, extra_rule) {
-        Ok(value) => value,
+        Ok(tz) => WrappedTz { tz },
         Err(_) => panic!(),
     }
 }
@@ -123,36 +126,6 @@ const fn new_transition(
     local_time_type_index: usize,
 ) -> tz::timezone::Transition {
     tz::timezone::Transition::new(unix_leap_time, local_time_type_index)
-}
-
-#[must_use]
-const fn new_alternate_time(
-    std: tz::LocalTimeType,
-    dst: tz::LocalTimeType,
-    dst_start: tz::timezone::RuleDay,
-    dst_start_time: i32,
-    dst_end: tz::timezone::RuleDay,
-    dst_end_time: i32,
-) -> tz::timezone::AlternateTime {
-    match tz::timezone::AlternateTime::new(
-        std,
-        dst,
-        dst_start,
-        dst_start_time,
-        dst_end,
-        dst_end_time,
-    ) {
-        Ok(value) => value,
-        Err(_) => panic!(),
-    }
-}
-
-#[must_use]
-const fn new_month_week_day(month: u8, week: u8, week_day: u8) -> tz::timezone::MonthWeekDay {
-    match tz::timezone::MonthWeekDay::new(month, week, week_day) {
-        Ok(value) => value,
-        Err(_) => panic!(),
-    }
 }
 
 // This implementation allows for invalid equalities like `b'-' == b'\x7f'`, but that's OK.
